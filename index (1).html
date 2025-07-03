@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="no">
+<!DOCTYPE html>
+<html lang="no">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,7 +21,11 @@
     <button onclick="getAI('Lag en kursplan for å lære swing trading trinn for trinn')">🧠 Læring</button>
     <button onclick="getAI('Lag et nettkurs om RSI-strategi, inkludert quiz og oppgaver')">✍️ Kursbygger</button>
     <button onclick="getAI('Gi meg en nisje innen AI og økonomi som har etterspørsel')">🕵️ Idéjeger</button>
-  </div>  <div class="output" id="resultat">AI-svar kommer her...</div>  <script>
+  </div>
+
+  <div class="output" id="resultat">AI-svar kommer her...</div>
+
+  <script>
     async function getAI(prompt) {
       document.getElementById("resultat").innerText = "🔄 Henter svar fra AI...";
       try {
@@ -36,5 +41,6 @@
         document.getElementById("resultat").innerText = "⚠️ Noe gikk galt: " + error.message;
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
