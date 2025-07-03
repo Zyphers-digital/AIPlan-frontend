@@ -1,31 +1,120 @@
-<!DOCTYPE html>
-<html lang="no">
+<!DOCTYPE html><html lang="no">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AIPlan</title>
   <style>
-    body { font-family: sans-serif; margin: 0; padding: 2rem; background: #f4f4f4; }
-    h1 { font-size: 2rem; margin-bottom: 1rem; }
-    .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    button { padding: 0.5rem 1rem; cursor: pointer; border: none; border-radius: 6px; background: #222; color: white; }
-    button:hover { background: #444; }
-    .output { background: white; padding: 1rem; border-radius: 6px; min-height: 100px; white-space: pre-wrap; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f4f4f4;
+      color: #222;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #1c1c1c;
+      color: #ddd;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    header img {
+      height: 50px;
+    }
+    .tabs, .input-group, .toolbar {
+      margin-bottom: 1rem;
+    }
+    .tabs, .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #0077cc;
+      color: white;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .output, .history {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      min-height: 100px;
+      white-space: pre-wrap;
+      margin-top: 1rem;
+    }
+    body.dark .output, body.dark .history {
+      background: #333;
+      color: #eee;
+    }
+    select {
+      padding: 0.4rem;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <h1>🤖 AIPlan – Din AI-assistent</h1>
-  <div class="tabs">
-    <button onclick="getAI('Lag en tradingstrategi for nybegynner med RSI og glidende snitt')">📊 Trading</button>
-    <button onclick="getAI('Hvordan kan jeg gjøre 5 000 kroner til 10 millioner uten gearing?')">💰 Investering</button>
-    <button onclick="getAI('Lag en kursplan for å lære swing trading trinn for trinn')">🧠 Læring</button>
-    <button onclick="getAI('Lag et nettkurs om RSI-strategi, inkludert quiz og oppgaver')">✍️ Kursbygger</button>
-    <button onclick="getAI('Gi meg en nisje innen AI og økonomi som har etterspørsel')">🕵️ Idéjeger</button>
-  </div>
+  <header>
+    <img src="/mnt/data/A_logo_design_for_“AIPlan”_is_displayed_against_a_.png" alt="AIPlan Logo">
+    <div>
+      <select onchange="endreSprak(this.value)">
+        <option value="no">🇳🇴 Norsk</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+      <button onclick="toggleDarkMode()">🌓 Mørk modus</button>
+    </div>
+  </header>  <div class="tabs" id="knapper"></div>  <div class="input-group">
+    <input type="text" id="egenPrompt" placeholder="Skriv ditt eget spørsmål her..." />
+    <button onclick="getCustomPrompt()">Send</button>
+  </div>  <div class="output" id="resultat">AI-svar kommer her...</div>
+  <button onclick="lastNedPDF()">📄 Last ned svar som PDF</button>
+  <div class="history" id="historikk">🕘 Tidligere samtaler:</div>  <script>
+    let historikk = [];
+    let sprak = "no";
+    const labels = {
+      no: [
+        "Lag en tradingstrategi for nybegynner med RSI og glidende snitt",
+        "Hvordan kan jeg gjøre 5 000 kroner til 10 millioner uten gearing?",
+        "Lag en kursplan for å lære swing trading trinn for trinn",
+        "Lag et nettkurs om RSI-strategi, inkludert quiz og oppgaver",
+        "Gi meg en nisje innen AI og økonomi som har etterspørsel"
+      ],
+      en: [
+        "Create a beginner trading strategy with RSI and moving average",
+        "How can I turn 5,000 NOK into 10 million without leverage?",
+        "Create a step-by-step swing trading course plan",
+        "Create an online course on RSI strategy with quizzes",
+        "Suggest a niche in AI and finance with high demand"
+      ]
+    };
 
-  <div class="output" id="resultat">AI-svar kommer her...</div>
+    function tegnKnapper() {
+      const tabDiv = document.getElementById("knapper");
+      tabDiv.innerHTML = "";
+      labels[sprak].forEach(prompt => {
+        const btn = document.createElement("button");
+        btn.innerText = prompt;
+        btn.onclick = () => getAI(prompt);
+        tabDiv.appendChild(btn);
+      });
+    }
 
-  <script>
     async function getAI(prompt) {
       document.getElementById("resultat").innerText = "🔄 Henter svar fra AI...";
       try {
@@ -34,13 +123,49 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt })
         });
-
         const data = await response.json();
-        document.getElementById("resultat").innerText = data.result;
+        const svar = data.result;
+        document.getElementById("resultat").innerText = svar;
+        historikk.push(`👉 ${prompt}\n🧠 ${svar}`);
+        oppdaterHistorikk();
       } catch (error) {
         document.getElementById("resultat").innerText = "⚠️ Noe gikk galt: " + error.message;
       }
     }
-  </script>
-</body>
+
+    function getCustomPrompt() {
+      const input = document.getElementById("egenPrompt").value;
+      if (input.trim()) {
+        getAI(input);
+        document.getElementById("egenPrompt").value = "";
+      } else {
+        alert("Skriv inn et spørsmål først!");
+      }
+    }
+
+    function oppdaterHistorikk() {
+      document.getElementById("historikk").innerText = "🕘 Tidligere samtaler:\n\n" + historikk.join("\n\n");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function lastNedPDF() {
+      const svar = document.getElementById("resultat").innerText;
+      const blob = new Blob([svar], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'aiplan-svar.pdf';
+      link.click();
+    }
+
+    function endreSprak(val) {
+      sprak = val;
+      tegnKnapper();
+    }
+
+    // Startside
+    tegnKnapper();
+  </script></body>
 </html>
