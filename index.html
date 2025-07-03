@@ -118,7 +118,7 @@
     async function getAI(prompt) {
       document.getElementById("resultat").innerText = "🔄 Henter svar fra AI...";
       try {
-        const response = await fetch("https://9be1713c-0fbd-4360-a26a-5a611fa750fd-00-uoumbbe1jaia.worf.replit.dev/api/gpt", {
+        const response = await fetch("https://9be1713c-0fbd-4360-a26a-5a611fa750fd-00-uoumbbe1jaia.worf.repl.co/api/gpt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt })
